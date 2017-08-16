@@ -47,7 +47,7 @@ object AppCore {
       .option("password", "123456")
       .save()
 
-    print("=======================")
+//    print("=======================")
 
   }
 }
