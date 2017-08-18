@@ -1,0 +1,2 @@
+all:
+	bash update.sh
