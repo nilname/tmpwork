@@ -3,8 +3,18 @@ package com.hx.bigdata
 import java.text.SimpleDateFormat
 import java.util.{Date, Properties}
 
+import org.apache.spark.sql.{DataFrameNaFunctions, DataFrame, SparkSession}
+
+import scala.reflect.internal.util.TableDef.Column
+
+
+import org.apache.spark.sql.Row
+// $example on:init_session$
 import org.apache.spark.sql.SparkSession
-import org.apache.spark._
+// $example off:init_session$
+// $example on:programmatic_schema$
+// $example on:data_types$
+import org.apache.spark.sql.types._
 
 ///**
 //  * Created by fangqing on 8/14/17.
@@ -47,10 +57,12 @@ object AppCore {
       .option("password", "123456")
       .save()
 
-//    print("=======================")
+    //    print("=======================")
 
   }
+
+
 }
 
-case class results(id: Long, call_time: String, car_nums: Int)
+case class results(id: Long, compute_time: String, aggregated_quantity: Int)
 
