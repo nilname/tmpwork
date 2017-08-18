@@ -3,30 +3,29 @@ package com.hx.bigdata
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-import org.apache.spark.sql.{Column, DataFrame, DataFrameNaFunctions, SparkSession}
+import org.apache.spark.sql.{DataFrame, SparkSession}
 
 /**
   * Created by fangqing on 8/14/17.
   */
 object getStatus {
-//  def main(args: Array[String]): Unit = {
-//    print("hello")
-//    print(getLastNminute(5))
-//  }
-  def getLastNminute(num:Int):String= {
-    var dateFormat: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+  def getLastNminute(num: Int): String = {
+    var dateFormat: SimpleDateFormat = new SimpleDateFormat(Constant.TIME_FORMATE)
     var cal: Calendar = Calendar.getInstance()
     cal.add(Calendar.MINUTE, -num)
     var yesterday = dateFormat.format(cal.getTime())
     yesterday
   }
-  def getNminuteLater(num:Int):String= {
-    var dateFormat: SimpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+  def getNminuteLater(num: Int): String = {
+    var dateFormat: SimpleDateFormat = new SimpleDateFormat(Constant.TIME_FORMATE)
     var cal: Calendar = Calendar.getInstance()
     cal.add(Calendar.MINUTE, num)
     var yesterday = dateFormat.format(cal.getTime())
     yesterday
   }
+
   def getCarsfromRegion(cardf: DataFrame, regiondf: DataFrame, sparkSession: SparkSession): DataFrame = {
     import sparkSession.implicits._
     val tmpdf = regiondf.agg(Map("pos_lon" -> "min", "pos_lon" -> "max", "pos_lat" -> "min", "pos_lat" -> "max")).takeAsList(1).get(0)
@@ -64,5 +63,18 @@ object getStatus {
     }
     final_df
   }
+
+  def getRegionInfo(sparkSession: SparkSession): DataFrame = {
+
+    val final_df = sparkSession.read
+      .format("jdbc")
+      .option("url", Constant.DBURL)
+      .option("dbtable", Constant.REGION_TABLE)
+      .option("user", Constant.DBUSER)
+      .option("password", Constant.DBPASSWD)
+      .load()
+    final_df
+  }
+
 
 }
