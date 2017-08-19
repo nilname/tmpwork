@@ -28,14 +28,19 @@ object getStatus {
 
   def getCarsfromRegion(cardf: DataFrame, regiondf: DataFrame, sparkSession: SparkSession): DataFrame = {
     import sparkSession.implicits._
-    val tmpdf = regiondf.select("pos_lat", "pos_lon").agg(Map("pos_lon" -> "min", "pos_lon" -> "max", "pos_lat" -> "min", "pos_lat" -> "max")).takeAsList(1).get(0)
-    val a = tmpdf.getDouble(0)
-    val b = tmpdf.getDouble(1)
-    val c = tmpdf.getDouble(2)
-    val d = tmpdf.getDouble(3)
-
-    val middf = cardf.filter($"pos_lon" > a).filter($"pos_lon" < b).filter($"pos_lat" > c).filter($"pos_lat" < d)
+    val tmpdf = regiondf.select("pos_lat", "pos_lon").agg(Map("pos_lon" -> "max", "pos_lat" -> "max")).takeAsList(1).get(0)
+    val tmpdf_min = regiondf.select("pos_lat", "pos_lon").agg(Map("pos_lon" -> "min", "pos_lat" -> "min")).takeAsList(1).get(0)
+    val a = tmpdf_min.getDouble(0)
+    val b = tmpdf.getDouble(0)
+    val c = tmpdf.getDouble(1)
+    val d = tmpdf_min.getDouble(1)
+    println(s"=>in region $a,$b,$c,$d")
+    cardf.select("pos_lat","pos_lon").show(100,false)
+    println("=>region")
+    val middf = cardf.filter($"pos_lon" > a).filter($"pos_lon" < b).filter($"pos_lat" < c).filter($"pos_lat" > d)
     val final_df = middf.groupBy("carno").count().join(middf, "carno").filter("count >10")
+    final_df.select("pos_lat","pos_lon").show(100,false)
+    println("----------->region")
     final_df
   }
 
@@ -50,17 +55,22 @@ object getStatus {
     var middf: DataFrame = null
     var final_df: DataFrame = null
     for (i <- 0 until road_len) {
-      a = tmplist(i).getDouble(0) + 0.0001
-      b = tmplist(i).getDouble(0) - 0.0001
-      c = tmplist(i).getDouble(1) + 0.0001
-      d = tmplist(i).getDouble(1) - 0.0001
-      middf = cardf.filter($"pos_lat" > a).filter($"pos_lat" < b).filter($"pos_lon" > c).filter($"pos_lon" < d)
+      a = tmplist(i).getDouble(0) + 0.0003
+      b = tmplist(i).getDouble(0) - 0.0003
+      c = tmplist(i).getDouble(1) + 0.0003
+      d = tmplist(i).getDouble(1) - 0.0003
+      println(s"=>in road $a,$b,$c,$d")
+      cardf.select("pos_lat","pos_lon").show(100,false)
+      println("=>road")
+      middf = cardf.filter($"pos_lat" < a).filter($"pos_lat" > b).filter($"pos_lon" < c).filter($"pos_lon" > d)
       if (i == 0) {
         final_df = middf
       } else {
         final_df = final_df.union(middf).dropDuplicates()
       }
     }
+    final_df.select("pos_lat","pos_lon").show(100,false)
+    println("----------->road----------------")
     final_df
   }
 
@@ -93,14 +103,14 @@ object getStatus {
   }
 
 
-  def saveResult(resultdf: DataFrame, sparkSession: SparkSession): Unit = {
+  def saveResult(resultdf: DataFrame, regionID:Long,sparkSession: SparkSession): Unit = {
     import sparkSession.implicits._
 
     val now: Date = new Date()
     val dateFormat: SimpleDateFormat = new SimpleDateFormat(Constant.TIME_FORMATE)
     val compute_time = dateFormat.format(now)
     val car_numbers = resultdf.select("carno").dropDuplicates().count().toInt;
-    val regionID = resultdf.select("bh").takeAsList(1).get(0).getInt(0)
+//    val regionID = resultdf.select("bh").takeAsList(1).get(0).getInt(0)
 
     val tmp = results(0, regionID, compute_time, car_numbers)
     val res = Seq(tmp)
@@ -118,7 +128,7 @@ object getStatus {
 
 }
 
-case class results(id: Long, id_hb: Long, compute_time: String, aggregated_quantity: Int)
+case class results(id: Long, id_bh: Long, compute_time: String, aggregated_quantity: Int)
 
 case class resultsDetail(id: Long, number_id: Long, pos_lat: String, pos_lon: String, pos_time: String, carno: String)
 

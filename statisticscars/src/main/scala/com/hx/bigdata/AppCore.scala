@@ -8,9 +8,16 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 //  */
 object AppCore {
   def main(args: Array[String]): Unit = {
-
-    val start = getStatus.getLastNminute(Constant.CALCULATE_INTERVAL)
-    val end = getStatus.getLastNminute(0)
+    var start="";
+    var end="";
+    if(args.size==0) {
+       start = getStatus.getLastNminute(Constant.CALCULATE_INTERVAL)
+       end = getStatus.getLastNminute(0)
+    }
+    else {
+       start = args(0)
+       end = args(1)
+    }
     val spark = SparkSession
       .builder()
       .appName(Constant.APP_NAME)
@@ -28,16 +35,29 @@ object AppCore {
 
     val regions = getStatus.getRegionInfo(spark)
     var tmpdf: DataFrame = null
+    var regionID:Long=0
     for (i <- 0 until regions.size) {
+      regionID=regions(i).select("bh").takeAsList(1).get(0).getString(0).toLong
       tmpdf = null
-      if (getStatus.getRegionType(regions(i)).eq(Constant.REGION_FLAG)) {
+      val flag=getStatus.getRegionType(regions(i)).trim()
+      val trflag=flag.equals(Constant.REGION_FLAG.trim)
+      println(s"==>this is $flag")
+      println(s"==>this is ${Constant.REGION_FLAG.trim()}")
+      println(s"==>this is ${trflag}")
+
+      if (trflag) {
+        println("tttttttttttttttttttttttttttt")
         tmpdf = getStatus.getCarsfromRegion(jdbcDF, regions(i), spark)
       }
       else {
         tmpdf = getStatus.getCarsfromroad(jdbcDF, regions(i), spark)
       }
+//      tmpdf = getStatus.getCarsfromRegion(jdbcDF, regions(i), spark)
       if (tmpdf != null)
-        getStatus.saveResult(tmpdf, spark)
+        println(tmpdf.schema)
+      println(regionID)
+      println("saving...\n")
+        getStatus.saveResult(tmpdf, regionID,spark)
 
     }
 
