@@ -35,12 +35,14 @@ object getStatus {
     val c = tmpdf.getDouble(1)
     val d = tmpdf_min.getDouble(1)
     println(s"=>in region $a,$b,$c,$d")
-    cardf.select("pos_lat","pos_lon").show(100,false)
+//    cardf.select("pos_lat","pos_lon").show(100,false)
     println("=>region")
     val middf = cardf.filter($"pos_lon" > a).filter($"pos_lon" < b).filter($"pos_lat" < c).filter($"pos_lat" > d)
-    val final_df = middf.groupBy("carno").count().join(middf, "carno").filter("count >10")
-    final_df.select("pos_lat","pos_lon").show(100,false)
+    val final_df = middf.groupBy("carno").count().join(middf, "carno")//.filter("count >10")
+//    final_df.select("pos_lat","pos_lon").show(100,false)
     println("----------->region")
+    final_df.printSchema()
+    println(s"=>this result count is${final_df.count()}; orginal df is ${cardf.count()}")
     final_df
   }
 
@@ -60,7 +62,7 @@ object getStatus {
       c = tmplist(i).getDouble(1) + 0.0003
       d = tmplist(i).getDouble(1) - 0.0003
       println(s"=>in road $a,$b,$c,$d")
-      cardf.select("pos_lat","pos_lon").show(100,false)
+//      cardf.select("pos_lat","pos_lon").show(100,false)
       println("=>road")
       middf = cardf.filter($"pos_lat" < a).filter($"pos_lat" > b).filter($"pos_lon" < c).filter($"pos_lon" > d)
       if (i == 0) {
@@ -69,7 +71,7 @@ object getStatus {
         final_df = final_df.union(middf).dropDuplicates()
       }
     }
-    final_df.select("pos_lat","pos_lon").show(100,false)
+//    final_df.select("pos_lat","pos_lon").show(100,false)
     println("----------->road----------------")
     final_df
   }

@@ -8,15 +8,15 @@ import org.apache.spark.sql.{DataFrame, SparkSession}
 //  */
 object AppCore {
   def main(args: Array[String]): Unit = {
-    var start="";
-    var end="";
-    if(args.size==0) {
-       start = getStatus.getLastNminute(Constant.CALCULATE_INTERVAL)
-       end = getStatus.getLastNminute(0)
+    var start = "";
+    var end = "";
+    if (args.size == 0) {
+      start = getStatus.getLastNminute(Constant.CALCULATE_INTERVAL)
+      end = getStatus.getLastNminute(0)
     }
     else {
-       start = args(0)
-       end = args(1)
+      start = args(0)
+      end = args(1)
     }
     val spark = SparkSession
       .builder()
@@ -24,23 +24,29 @@ object AppCore {
       .getOrCreate()
 
 
+    //    val jdbcDF = spark.read
+    //      .format("jdbc")
+    //      .option("url", Constant.DBURL+Constant.RESULTDB)
+    //      .option("dbtable", s"(select * from ${Constant.TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb ")
+    //      .option("user", Constant.DBUSER)
+    //      .option("password", Constant.DBPASSWD)
+    //      .load()
     val jdbcDF = spark.read
       .format("jdbc")
-      .option("url", Constant.DBURL+Constant.RESULTDB)
-      .option("dbtable", s"(select * from ${Constant.TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb ")
+      .option("url", Constant.DBURL + Constant.RESULTDB)
+      .option("dbtable", Constant.TAXIGPS_TABLE)
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
       .load()
-
-
+    println(s"jdbc count is ${jdbcDF.count()}")
     val regions = getStatus.getRegionInfo(spark)
     var tmpdf: DataFrame = null
-    var regionID:Long=0
+    var regionID: Long = 0
     for (i <- 0 until regions.size) {
-      regionID=regions(i).select("bh").takeAsList(1).get(0).getString(0).toLong
+      regionID = regions(i).select("bh").takeAsList(1).get(0).getString(0).toLong
       tmpdf = null
-      val flag=getStatus.getRegionType(regions(i)).trim()
-      val trflag=flag.equals(Constant.REGION_FLAG.trim)
+      val flag = getStatus.getRegionType(regions(i)).trim()
+      val trflag = flag.equals(Constant.REGION_FLAG.trim)
       println(s"==>this is $flag")
       println(s"==>this is ${Constant.REGION_FLAG.trim()}")
       println(s"==>this is ${trflag}")
@@ -52,16 +58,18 @@ object AppCore {
       else {
         tmpdf = getStatus.getCarsfromroad(jdbcDF, regions(i), spark)
       }
-//      tmpdf = getStatus.getCarsfromRegion(jdbcDF, regions(i), spark)
-      if (tmpdf != null)
+      //      tmpdf = getStatus.getCarsfromRegion(jdbcDF, regions(i), spark)
+      if (tmpdf != null) {
         println(tmpdf.schema)
-      println(regionID)
-      println("saving...\n")
-        getStatus.saveResult(tmpdf, regionID,spark)
+        println(regionID)
+        println("saving...\n")
+        tmpdf.show(20)
+        getStatus.saveResult(tmpdf, regionID, spark)
+      }
 
     }
 
-
+    //106.6502,106.656237,26.651883,26.645094
     //    val now: Date = new Date()
     //    val dateFormat: SimpleDateFormat = new SimpleDateFormat(Constant.TIME_FORMATE)
     //    val compute_time = dateFormat.format(now)
