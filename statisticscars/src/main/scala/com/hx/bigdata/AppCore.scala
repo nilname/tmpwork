@@ -1,12 +1,15 @@
 package com.hx.bigdata
 
 import org.apache.spark.sql.{DataFrame, SparkSession}
+import org.slf4j.LoggerFactory
 
 
 ///**
 //  * Created by fangqing on 8/14/17.
 //  */
 object AppCore {
+  val LOG = LoggerFactory.getLogger(tmpTest.getClass);
+
   def main(args: Array[String]): Unit = {
     var start = "";
     var end = "";
@@ -24,20 +27,20 @@ object AppCore {
       .getOrCreate()
 
 
-    //    val jdbcDF = spark.read
-    //      .format("jdbc")
-    //      .option("url", Constant.DBURL+Constant.RESULTDB)
-    //      .option("dbtable", s"(select * from ${Constant.TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb ")
-    //      .option("user", Constant.DBUSER)
-    //      .option("password", Constant.DBPASSWD)
-    //      .load()
     val jdbcDF = spark.read
       .format("jdbc")
       .option("url", Constant.DBURL + Constant.RESULTDB)
-      .option("dbtable", Constant.TAXIGPS_TABLE)
+      .option("dbtable", s"(select * from ${Constant.TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb ")
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
       .load()
+    //    val jdbcDF = spark.read
+    //      .format("jdbc")
+    //      .option("url", Constant.DBURL + Constant.RESULTDB)
+    //      .option("dbtable", Constant.TAXIGPS_TABLE)
+    //      .option("user", Constant.DBUSER)
+    //      .option("password", Constant.DBPASSWD)
+    //      .load()
     println(s"jdbc count is ${jdbcDF.count()}")
     val regions = getStatus.getRegionInfo(spark)
     var tmpdf: DataFrame = null
@@ -47,9 +50,9 @@ object AppCore {
       tmpdf = null
       val flag = getStatus.getRegionType(regions(i)).trim()
       val trflag = flag.equals(Constant.REGION_FLAG.trim)
-      println(s"==>this is $flag")
-      println(s"==>this is ${Constant.REGION_FLAG.trim()}")
-      println(s"==>this is ${trflag}")
+      LOG.info(s"==>this is $flag")
+      LOG.info(s"==>this is ${Constant.REGION_FLAG.trim()}")
+      LOG.info(s"==>this is ${trflag}")
 
       if (trflag) {
         println("tttttttttttttttttttttttttttt")
@@ -60,12 +63,22 @@ object AppCore {
       }
       //      tmpdf = getStatus.getCarsfromRegion(jdbcDF, regions(i), spark)
       if (tmpdf != null) {
-        println(tmpdf.schema)
-        println(regionID)
-        println("saving...\n")
+        //        LOG.info(tmpdf.schema)
+        LOG.info(s"the region ID is : $regionID")
+        LOG.info(s"saving result in :${Constant.RESULT_TABLE} \n")
         tmpdf.show(20)
         getStatus.saveResult(tmpdf, regionID, spark)
-        println("saving  detail .....")
+        LOG.info("==============")
+        tmpdf.printSchema()
+        LOG.info("saving  detail .....")
+        val number_id = spark.read
+          .format("jdbc")
+          .option("url", Constant.DBURL + Constant.RESULTDB)
+          .option("dbtable", Constant.RESULT_TABLE)
+          .option("user", Constant.DBUSER)
+          .option("password", Constant.DBPASSWD)
+          .load().count()
+        getStatus.saveResultDetail(tmpdf, number_id, spark)
       }
 
     }

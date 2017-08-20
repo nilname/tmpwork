@@ -2,13 +2,15 @@ package com.hx.bigdata
 
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Date}
-
-import org.apache.spark.sql.{DataFrame, SparkSession}
+//import org.
+import org.apache.spark.sql.{DataFrame, functions,SparkSession}
+import org.slf4j.LoggerFactory
 
 /**
   * Created by fangqing on 8/14/17.
   */
 object getStatus {
+  val LOG = LoggerFactory.getLogger(tmpTest.getClass);
 
   def getLastNminute(num: Int): String = {
     var dateFormat: SimpleDateFormat = new SimpleDateFormat(Constant.TIME_FORMATE)
@@ -34,15 +36,15 @@ object getStatus {
     val b = tmpdf.getDouble(0)
     val c = tmpdf.getDouble(1)
     val d = tmpdf_min.getDouble(1)
-    println(s"=>in region $a,$b,$c,$d")
+    LOG.info(s"=>in region $a,$b,$c,$d")
     //    cardf.select("pos_lat","pos_lon").show(100,false)
-    println("=>region")
+    LOG.info("=>region")
     val middf = cardf.filter($"pos_lon" > a).filter($"pos_lon" < b).filter($"pos_lat" < c).filter($"pos_lat" > d)
-    val final_df = middf.groupBy("carno").count().join(middf, "carno") //.filter("count >10")
+    val final_df = middf.groupBy("carno").count().join(middf, "carno").filter("count >10")
     //    final_df.select("pos_lat","pos_lon").show(100,false)
-    println("----------->region")
+    LOG.info("----------->region")
     final_df.printSchema()
-    println(s"=>this result count is${final_df.count()}; orginal df is ${cardf.count()}")
+    LOG.info(s"=>this result count is${final_df.count()}; orginal df is ${cardf.count()}")
     final_df
   }
 
@@ -61,9 +63,9 @@ object getStatus {
       b = tmplist(i).getDouble(0) - 0.0003
       c = tmplist(i).getDouble(1) + 0.0003
       d = tmplist(i).getDouble(1) - 0.0003
-      println(s"=>in road $a,$b,$c,$d")
+      LOG.info(s"=>in road $a,$b,$c,$d")
       //      cardf.select("pos_lat","pos_lon").show(100,false)
-      println("=>road")
+      LOG.info("=>road")
       middf = cardf.filter($"pos_lat" < a).filter($"pos_lat" > b).filter($"pos_lon" < c).filter($"pos_lon" > d)
       if (i == 0) {
         final_df = middf
@@ -72,7 +74,7 @@ object getStatus {
       }
     }
     //    final_df.select("pos_lat","pos_lon").show(100,false)
-    println("----------->road----------------")
+    LOG.info("----------->road----------------")
     final_df
   }
 
@@ -98,9 +100,9 @@ object getStatus {
 
   def getRegionType(df: DataFrame): String = {
     val region_type = df.select("leixin").takeAsList(1).get(0).getString(0)
-    println("===================")
-    println(region_type)
-    println("===================")
+    LOG.info("===================")
+    LOG.info(region_type)
+    LOG.info("===================")
     region_type
   }
 
@@ -121,6 +123,22 @@ object getStatus {
       .format("jdbc")
       .option("url", Constant.DBURL + Constant.RESULTDB)
       .option("dbtable", Constant.RESULT_TABLE)
+      .option("user", Constant.DBUSER)
+      .option("password", Constant.DBPASSWD)
+      .save()
+
+
+  }
+
+
+  def saveResultDetail(resultdf: DataFrame, number_id: Long, sparkSession: SparkSession): Unit = {
+    import sparkSession.implicits._
+
+ val resDf=resultdf.withColumn("number_id",functions.lit(number_id)).withColumn("id",functions.lit(0)).select("id","number_id","pos_lat", "pos_lon", "pos_time", "carno")
+    resDf.write.mode("append")
+      .format("jdbc")
+      .option("url", Constant.DBURL + Constant.RESULTDB)
+      .option("dbtable", Constant.DETAIL_RESULT_TABLE)
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
       .save()

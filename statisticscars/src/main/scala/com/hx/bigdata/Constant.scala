@@ -21,7 +21,7 @@ object Constant {
   val RESULT_TABLE_FIELDS = "id,id_bh,compute_time,aggregated_quantity"
   val REGION_TABLE_FIELDS = "id,bh,region_type,regin,pos_lon,pos_lat"
   val DETAIL_RESULT_TABLE_FIELDS = "id,number_id,pos_lat,pos_lon,pos_time,carno"
-  val REGION_FLAG = "region"
+  val REGION_FLAG = "区域"
 
 
 }
@@ -59,8 +59,9 @@ object Constant {
 taxinumber
 create table taxinumber(id int not null auto_increment primary key, compute_time timestamp,aggregated_quantity int)
 
-create table taxinumber(id int not null auto_increment primary key, id_bh int,compute_time timestamp,aggregated_quantity int)
-create table test_taxinumber(id int not null auto_increment primary key, id_bh int,compute_time timestamp,aggregated_quantity int)
+
+create table test_taxinumber(id int not null auto_increment primary key, id_bh int(3) zerofill,compute_time timestamp,aggregated_quantity int)
+create table taxinumber(id int not null auto_increment primary key, id_bh int(3) zerofill,compute_time timestamp,aggregated_quantity int)
 
 taxidetail
 create table taxidetail(id int not null auto_increment primary key, number_id int,pos_lat varchar(50),pos_lon varchar(50),pos_time timestamp,carno varchar(20))
