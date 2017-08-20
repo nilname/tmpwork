@@ -4,8 +4,8 @@ package com.hx.bigdata
   * Created by fangqing on 8/18/17.
   */
 object Constant {
-  val SOURCEDB="sjww"
-  val RESULTDB="test12"
+  val SOURCEDB = "sjww"
+  val RESULTDB = "test12"
   val DBURL = "jdbc:mysql://10.10.60.196:3306/"
   val DBUSER = "zfw"
   val DBPASSWD = "123456"
@@ -17,11 +17,11 @@ object Constant {
   val CALCULATE_INTERVAL = 15
   val TIME_FORMATE = "yyyy-MM-dd HH:mm:ss"
   val TAXIGPS_TABLE_FEILDS = "id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon," +
-                             "pos_angle,use_area,pay_amount,name,idcard,sex,telephone,address,plate_time,bz"
+    "pos_angle,use_area,pay_amount,name,idcard,sex,telephone,address,plate_time,bz"
   val RESULT_TABLE_FIELDS = "id,id_bh,compute_time,aggregated_quantity"
   val REGION_TABLE_FIELDS = "id,bh,region_type,regin,pos_lon,pos_lat"
   val DETAIL_RESULT_TABLE_FIELDS = "id,number_id,pos_lat,pos_lon,pos_time,carno"
-  val REGION_FLAG="region"
+  val REGION_FLAG = "region"
 
 
 }

@@ -65,6 +65,7 @@ object AppCore {
         println("saving...\n")
         tmpdf.show(20)
         getStatus.saveResult(tmpdf, regionID, spark)
+        println("saving  detail .....")
       }
 
     }
