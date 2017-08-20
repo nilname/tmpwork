@@ -11,7 +11,7 @@ object Constant {
   val DBPASSWD = "123456"
   val REGION_TABLE = "taxi_region"
   val TAXIGPS_TABLE = s"taxigps"
-  val RESULT_TABLE = "test_taxinumber"
+  val RESULT_TABLE = "taxinumber"
   val DETAIL_RESULT_TABLE = "taxidetail"
   val APP_NAME = "car statistics"
   val CALCULATE_INTERVAL = 15
