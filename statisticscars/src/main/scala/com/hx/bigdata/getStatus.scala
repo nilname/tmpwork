@@ -40,7 +40,7 @@ object getStatus {
     //    cardf.select("pos_lat","pos_lon").show(100,false)
     LOG.info("=>region")
     val middf = cardf.filter($"pos_lon" > a).filter($"pos_lon" < b).filter($"pos_lat" < c).filter($"pos_lat" > d)
-    val final_df = middf.groupBy("carno").count().join(middf, "carno").filter("count >10")
+    val final_df = middf.groupBy("carno").count().join(middf, "carno")//.filter("count >10")
     //    final_df.select("pos_lat","pos_lon").show(100,false)
     LOG.info("----------->region")
     final_df.printSchema()
@@ -82,7 +82,7 @@ object getStatus {
     import sparkSession.implicits._
     val final_df: DataFrame = sparkSession.read
       .format("jdbc")
-      .option("url", Constant.DBURL + Constant.SOURCEDB)
+      .option("url", Constant.DBURL + Constant.SOURCEDB+Constant.UTF8_STR)
       .option("dbtable", Constant.REGION_TABLE)
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
@@ -121,7 +121,7 @@ object getStatus {
     val resDf = sparkSession.createDataFrame(res);
     resDf.write.mode("append")
       .format("jdbc")
-      .option("url", Constant.DBURL + Constant.RESULTDB)
+      .option("url", Constant.DBURL + Constant.RESULTDB+Constant.UTF8_STR)
       .option("dbtable", Constant.RESULT_TABLE)
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
@@ -137,7 +137,7 @@ object getStatus {
  val resDf=resultdf.withColumn("number_id",functions.lit(number_id)).withColumn("id",functions.lit(0)).select("id","number_id","pos_lat", "pos_lon", "pos_time", "carno")
     resDf.write.mode("append")
       .format("jdbc")
-      .option("url", Constant.DBURL + Constant.RESULTDB)
+      .option("url", Constant.DBURL + Constant.RESULTDB+Constant.UTF8_STR)
       .option("dbtable", Constant.DETAIL_RESULT_TABLE)
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)

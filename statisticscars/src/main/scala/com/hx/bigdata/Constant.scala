@@ -6,6 +6,8 @@ package com.hx.bigdata
 object Constant {
   val SOURCEDB = "sjww"
   val RESULTDB = "test12"
+  val STAB_DATA = "data-stability"
+  val STAB_TABLE="k_h_taxigps"
   val DBURL = "jdbc:mysql://10.10.60.196:3306/"
   val DBUSER = "zfw"
   val DBPASSWD = "123456"
@@ -14,7 +16,7 @@ object Constant {
   val RESULT_TABLE = "taxinumber"
   val DETAIL_RESULT_TABLE = "taxidetail"
   val APP_NAME = "car statistics"
-  val CALCULATE_INTERVAL = 15
+  val CALCULATE_INTERVAL = 30
   val TIME_FORMATE = "yyyy-MM-dd HH:mm:ss"
   val TAXIGPS_TABLE_FEILDS = "id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon," +
     "pos_angle,use_area,pay_amount,name,idcard,sex,telephone,address,plate_time,bz"
@@ -22,6 +24,7 @@ object Constant {
   val REGION_TABLE_FIELDS = "id,bh,region_type,regin,pos_lon,pos_lat"
   val DETAIL_RESULT_TABLE_FIELDS = "id,number_id,pos_lat,pos_lon,pos_time,carno"
   val REGION_FLAG = "区域"
+  val UTF8_STR="?characterEncoding=utf-8"
 
 
 }
