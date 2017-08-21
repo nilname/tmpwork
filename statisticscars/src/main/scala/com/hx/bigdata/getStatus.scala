@@ -40,7 +40,7 @@ object getStatus {
     //    cardf.select("pos_lat","pos_lon").show(100,false)
     LOG.info("=>region")
     val middf = cardf.filter($"pos_lon" > a).filter($"pos_lon" < b).filter($"pos_lat" < c).filter($"pos_lat" > d)
-    val final_df = middf.groupBy("carno").count().join(middf, "carno")//.filter("count >10")
+    val final_df = middf.groupBy("carno").count().join(middf, "carno").filter("count >10")
     //    final_df.select("pos_lat","pos_lon").show(100,false)
     LOG.info("----------->region")
     final_df.printSchema()
