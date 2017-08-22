@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory
   * Created by fangqing on 8/14/17.
   */
 object getStatus {
+
   val LOG = LoggerFactory.getLogger(tmpTest.getClass);
 
   def getLastNminute(num: Int): String = {

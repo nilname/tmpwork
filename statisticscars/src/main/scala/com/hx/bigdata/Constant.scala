@@ -1,22 +1,55 @@
 package com.hx.bigdata
 
+import java.io.{File, FileInputStream}
+import java.util.Properties
+
+import org.slf4j.LoggerFactory
+
 /**
   * Created by fangqing on 8/18/17.
   */
 object Constant {
-  val SOURCEDB = "sjww"
-  val RESULTDB = "test12"
-  val STAB_DATA = "data-stability"
-  val STAB_TABLE="k_h_taxigps"
-  val DBURL = "jdbc:mysql://10.10.60.196:3306/"
-  val DBUSER = "zfw"
-  val DBPASSWD = "123456"
-  val REGION_TABLE = "taxi_region"
-  val TAXIGPS_TABLE = s"taxigps"
-  val RESULT_TABLE = "taxinumber"
-  val DETAIL_RESULT_TABLE = "taxidetail"
-  val APP_NAME = "car statistics"
-  val CALCULATE_INTERVAL = 30
+  def init(): Unit = {
+    val prop = new Properties()
+    val filepath = new File(System.getProperty("user.dir"))
+    val LOG = LoggerFactory.getLogger(Constant.getClass);
+    val filedir = filepath + File.separator + "statistics.properties"
+    LOG.info(s"conf dir is $filedir")
+    prop.load(new FileInputStream(filedir))
+    this.SOURCEDB = prop.getProperty("SOURCEDB")
+    this.RESULTDB = prop.getProperty("RESULTDB")
+
+    this.APP_NAME = prop.getProperty("APP_NAME")
+    this.STAB_SOURCEDB = prop.getProperty("STAB_SOURCEDB")
+    this.STAB_TAXIGPS_TABLE = prop.getProperty("STAB_TAXIGPS_TABLE")
+
+    this.DBURL = prop.getProperty("DBURL")
+    this.DBUSER = prop.getProperty("DBUSER")
+    this.DBPASSWD = prop.getProperty("DBPASSWD")
+
+    this.REGION_TABLE = prop.getProperty("REGION_TABLE")
+    this.TAXIGPS_TABLE = prop.getProperty("TAXIGPS_TABLE")
+    this.RESULT_TABLE = prop.getProperty("RESULT_TABLE")
+    this.DETAIL_RESULT_TABLE = prop.getProperty("DETAIL_RESULT_TABLE")
+    this.CALCULATE_INTERVAL = prop.getProperty("CALCULATE_INTERVAL").toInt
+
+  }
+
+
+  var SOURCEDB = "sjww"
+  var RESULTDB = "test12"
+  var STAB_SOURCEDB = "data-stability"
+  var STAB_TAXIGPS_TABLE = "k_h_taxigps"
+  var DBURL = "jdbc:mysql://10.10.60.196:3306/"
+  var DBUSER = "zfw"
+  var DBPASSWD = "123456"
+  var REGION_TABLE = "taxi_region"
+  var TAXIGPS_TABLE = "taxigps"
+  var RESULT_TABLE = "taxinumber"
+  var DETAIL_RESULT_TABLE = "taxidetail"
+  var APP_NAME = "car statistics"
+  var CALCULATE_INTERVAL = 30
+
   val TIME_FORMATE = "yyyy-MM-dd HH:mm:ss"
   val TAXIGPS_TABLE_FEILDS = "id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon," +
     "pos_angle,use_area,pay_amount,name,idcard,sex,telephone,address,plate_time,bz"
@@ -24,7 +57,7 @@ object Constant {
   val REGION_TABLE_FIELDS = "id,bh,region_type,regin,pos_lon,pos_lat"
   val DETAIL_RESULT_TABLE_FIELDS = "id,number_id,pos_lat,pos_lon,pos_time,carno"
   val REGION_FLAG = "区域"
-  val UTF8_STR="?characterEncoding=utf-8"
+  val UTF8_STR = "?characterEncoding=utf-8"
 
 
 }

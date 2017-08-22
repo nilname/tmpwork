@@ -9,11 +9,13 @@ import org.slf4j.LoggerFactory
 //  */
 object AppCore {
   val LOG = LoggerFactory.getLogger(tmpTest.getClass);
+  Constant.init()
 
   def main(args: Array[String]): Unit = {
     var start = "";
     var end = "";
     if (args.size == 0) {
+      LOG.info(s"calculate interval is ${Constant.CALCULATE_INTERVAL}")
       start = getStatus.getLastNminute(Constant.CALCULATE_INTERVAL)
       end = getStatus.getLastNminute(0)
     }
@@ -29,7 +31,7 @@ object AppCore {
 
     val jdbcDF1 = spark.read
       .format("jdbc")
-      .option("url", Constant.DBURL + Constant.RESULTDB+Constant.UTF8_STR)
+      .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)
       .option("dbtable", s"(select id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon,pos_angle,use_area,pay_amount,name from ${Constant.TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb1 ")
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
@@ -37,14 +39,14 @@ object AppCore {
 
     val jdbcDF2 = spark.read
       .format("jdbc")
-      .option("url", Constant.DBURL + Constant.STAB_DATA+Constant.UTF8_STR)
-      .option("dbtable", s"(select id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon,pos_angle,use_area,pay_amount,name from ${Constant.STAB_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb2 ")
+      .option("url", Constant.DBURL + Constant.STAB_SOURCEDB + Constant.UTF8_STR)
+      .option("dbtable", s"(select id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon,pos_angle,use_area,pay_amount,name from ${Constant.STAB_TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb2 ")
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
       .load()
 
 
-        val jdbcDF=jdbcDF1.union(jdbcDF2)
+    val jdbcDF = jdbcDF1.union(jdbcDF2)
     //    val jdbcDF = spark.read
     //      .format("jdbc")
     //      .option("url", Constant.DBURL + Constant.RESULTDB)
@@ -84,7 +86,7 @@ object AppCore {
         LOG.info("saving  detail .....")
         val number_id = spark.read
           .format("jdbc")
-          .option("url", Constant.DBURL + Constant.RESULTDB+Constant.UTF8_STR)
+          .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)
           .option("dbtable", Constant.RESULT_TABLE)
           .option("user", Constant.DBUSER)
           .option("password", Constant.DBPASSWD)
@@ -118,8 +120,6 @@ object AppCore {
 
 
 }
-
-
 
 
 /*
