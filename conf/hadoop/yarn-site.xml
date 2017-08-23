@@ -40,7 +40,7 @@
 
 <property>
 <name>yarn.scheduler.maximum-allocation-mb</name>
-<value>4096</value>
+<value>102400</value>
 </property>
 <property>
 <name>yarn.scheduler.minimum-allocation-vcores</name>
@@ -65,4 +65,23 @@
 yarn.scheduler.minimum-allocation-mb/ yarn.scheduler.maximum-allocation-mb
 
 -->
+  <property>
+    <description>
+每个nodemanager上可以用的内存大小
+Amount of physical memory, in MB, that can be allocated for containers.
+ 注意：我的NM虚拟机是1G内存，1核CPU，当该值配置小于1024时，NM是无法启动的！会报错：
+NodeManager from  slavenode2 doesn't satisfy minimum allocations, Sending SHUTDOWN signal to the NodeManager.
+    </description>
+    <name>yarn.nodemanager.resource.memory-mb</name>
+    <value>204800</value>
+  </property>
+
+  <property>
+    <description>
+每个nodemanager上可用的CPU核数
+Number of CPU cores that can be allocated 
+    for containers.</description>
+    <name>yarn.nodemanager.resource.cpu-vcores</name>
+    <value>32</value>
+  </property>
 </configuration>

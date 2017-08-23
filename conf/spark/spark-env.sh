@@ -40,6 +40,12 @@
 # - SPARK_DRIVER_MEMORY, Memory for Driver (e.g. 1000M, 2G) (Default: 1G)
 
 # Options for the daemons used in the standalone deploy mode
+#SPARK_MASTER_HOST=10.10.60.204
+#SPARK_MASTER_PORT=7077
+#SPARK_WORKER_CORES=16
+#SPARK_WORKER_MEMOR=8g
+#SPARK_WORKER_INSTANCES=4
+# - SPARK_WORKER_DIR, to set the working directory of worker processes
 # - SPARK_MASTER_HOST, to bind the master to a different IP address or hostname
 # - SPARK_MASTER_PORT / SPARK_MASTER_WEBUI_PORT, to use non-default ports for the master
 # - SPARK_MASTER_OPTS, to set config properties only for the master (e.g. "-Dx=y")
