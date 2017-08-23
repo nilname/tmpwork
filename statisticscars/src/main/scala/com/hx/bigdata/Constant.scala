@@ -37,7 +37,7 @@ object Constant {
 
 
   var SOURCEDB = "sjww"
-  var RESULTDB = "test12"
+  var RESULTDB = "sjww"
   var STAB_SOURCEDB = "data-stability"
   var STAB_TAXIGPS_TABLE = "k_h_taxigps"
   var DBURL = "jdbc:mysql://10.10.60.196:3306/"

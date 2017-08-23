@@ -3,7 +3,7 @@ package com.hx.bigdata
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Date}
 //import org.
-import org.apache.spark.sql.{DataFrame, functions,SparkSession}
+import org.apache.spark.sql.{DataFrame, functions, SparkSession}
 import org.slf4j.LoggerFactory
 
 /**
@@ -83,7 +83,7 @@ object getStatus {
     import sparkSession.implicits._
     val final_df: DataFrame = sparkSession.read
       .format("jdbc")
-      .option("url", Constant.DBURL + Constant.SOURCEDB+Constant.UTF8_STR)
+      .option("url", Constant.DBURL + Constant.SOURCEDB + Constant.UTF8_STR)
       .option("dbtable", Constant.REGION_TABLE)
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
@@ -122,7 +122,7 @@ object getStatus {
     val resDf = sparkSession.createDataFrame(res);
     resDf.write.mode("append")
       .format("jdbc")
-      .option("url", Constant.DBURL + Constant.RESULTDB+Constant.UTF8_STR)
+      .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)
       .option("dbtable", Constant.RESULT_TABLE)
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
@@ -134,11 +134,11 @@ object getStatus {
 
   def saveResultDetail(resultdf: DataFrame, number_id: Long, sparkSession: SparkSession): Unit = {
     import sparkSession.implicits._
-
- val resDf=resultdf.withColumn("number_id",functions.lit(number_id)).withColumn("id",functions.lit(0)).select("id","number_id","pos_lat", "pos_lon", "pos_time", "carno")
-    resDf.write.mode("append")
+    val tdf = resultdf.select("carno", "pos_time").groupBy("carno").agg(Map("pos_time"->"max")).withColumnRenamed("max(pos_time)","pos_time")
+    val resDf = resultdf.withColumn("number_id", functions.lit(number_id)).select("number_id", "pos_time","pos_lat", "pos_lon", "carno").dropDuplicates()
+    resDf.join(tdf,Seq("carno","pos_time")).dropDuplicates().withColumn("id", functions.lit(0)).write.mode("append")
       .format("jdbc")
-      .option("url", Constant.DBURL + Constant.RESULTDB+Constant.UTF8_STR)
+      .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)
       .option("dbtable", Constant.DETAIL_RESULT_TABLE)
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
