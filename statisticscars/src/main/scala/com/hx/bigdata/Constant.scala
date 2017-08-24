@@ -336,6 +336,30 @@ val jdbcDF = spark.read
       .load()
 
 
+mysql> desc taxidetail;
++-----------+-------------+------+-----+---------+-------+
+| Field     | Type        | Null | Key | Default | Extra |
++-----------+-------------+------+-----+---------+-------+
+| id        | varchar(50) | NO   | PRI | NULL    |       |
+| number_id | varchar(50) | NO   |     |         |       |
+| pos_lat   | double      | YES  |     | NULL    |       |
+| pso_lon   | double      | YES  |     | NULL    |       |
+| pos_time  | datetime    | YES  |     | NULL    |       |
+| carno     | varchar(20) | YES  |     | NULL    |       |
++-----------+-------------+------+-----+---------+-------+
+6 rows in set (0.00 sec)
+
+mysql> desc taxinumber;
++---------------------+-------------+------+-----+---------+-------+
+| Field               | Type        | Null | Key | Default | Extra |
++---------------------+-------------+------+-----+---------+-------+
+| id                  | varchar(50) | YES  |     | NULL    |       |
+| id_bh               | varchar(10) | YES  |     | NULL    |       |
+| compute_time        | datetime    | YES  |     | NULL    |       |
+| aggregated_quantity | int(4)      | YES  |     | NULL    |       |
++---------------------+-------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
 
 
  */
