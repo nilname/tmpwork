@@ -29,22 +29,22 @@ object AppCore {
       .getOrCreate()
 
 
-    //    val jdbcDF1 = spark.read
-    //      .format("jdbc")
-    //      .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)
-    //      .option("dbtable", s"(select id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon,pos_angle,use_area,pay_amount,name from ${Constant.TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb1 ")
-    //      .option("user", Constant.DBUSER)
-    //      .option("password", Constant.DBPASSWD)
-    //      .load()
+    val jdbcDF1 = spark.read
+      .format("jdbc")
+      .option("url", Constant.DBURL + Constant.STAB_SOURCEDB + Constant.UTF8_STR)
+      .option("dbtable", s"(select id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon,pos_angle,use_area,pay_amount,name from ${Constant.TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb1 ")
+      .option("user", Constant.DBUSER)
+      .option("password", Constant.DBPASSWD)
+      .load()
 
-    val jdbcDF = spark.read
+    val jdbcDF2 = spark.read
       .format("jdbc")
       .option("url", Constant.DBURL + Constant.STAB_SOURCEDB + Constant.UTF8_STR)
       .option("dbtable", s"(select id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon,pos_angle,use_area,pay_amount,name from ${Constant.STAB_TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb2 ")
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
       .load()
-
+    val jdbcDF = jdbcDF1.union(jdbcDF2)
 
     println(s"jdbc count is ${jdbcDF.count()}")
     val regions = getStatus.getRegionInfo(spark)
@@ -83,7 +83,6 @@ object AppCore {
           .option("user", Constant.DBUSER)
           .option("password", Constant.DBPASSWD)
           .load().count()
-
 
 
         getStatus.saveResultDetail(tmpdf, number_id, spark)
