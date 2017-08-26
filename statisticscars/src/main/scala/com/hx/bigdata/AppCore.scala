@@ -44,7 +44,7 @@ object AppCore {
       .option("user", Constant.DBUSER)
       .option("password", Constant.DBPASSWD)
       .load()
-    val jdbcDF = jdbcDF1.union(jdbcDF2)
+    val jdbcDF = jdbcDF1.union(jdbcDF2).cache()
 
     println(s"jdbc count is ${jdbcDF.count()}")
     val regions = getStatus.getRegionInfo(spark)
@@ -55,12 +55,12 @@ object AppCore {
       tmpdf = null
       val flag = getStatus.getRegionType(regions(i)).trim()
       val trflag = flag.equals(Constant.REGION_FLAG.trim)
-      LOG.info(s"==>this is $flag")
-      LOG.info(s"==>this is ${Constant.REGION_FLAG.trim()}")
-      LOG.info(s"==>this is ${trflag}")
+//      LOG.info(s"==>this is $flag")
+//      LOG.info(s"==>this is ${Constant.REGION_FLAG.trim()}")
+//      LOG.info(s"==>this is ${trflag}")
 
       if (trflag) {
-        println("tttttttttttttttttttttttttttt")
+//        println("tttttttttttttttttttttttttttt")
         tmpdf = getStatus.getCarsfromRegion(jdbcDF, regions(i), spark)
       }
       else {
@@ -69,13 +69,13 @@ object AppCore {
 
       if (tmpdf != null) {
 
-        LOG.info(s"the region ID is : $regionID")
-        LOG.info(s"saving result in :${Constant.RESULT_TABLE} \n")
+//        LOG.info(s"the region ID is : $regionID")
+//        LOG.info(s"saving result in :${Constant.RESULT_TABLE} \n")
         tmpdf.show(20)
         getStatus.saveResult(tmpdf, regionID, spark)
-        LOG.info("==============")
+//        LOG.info("==============")
         tmpdf.printSchema()
-        LOG.info("saving  detail .....")
+//        LOG.info("saving  detail .....")
         val number_id = spark.read
           .format("jdbc")
           .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)

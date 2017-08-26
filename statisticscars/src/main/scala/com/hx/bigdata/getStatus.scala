@@ -59,14 +59,17 @@ object getStatus {
     var d: Double = 0
     var middf: DataFrame = null
     var final_df: DataFrame = null
+    LOG.info(s"=>in road $a,$b,$c,$d")
+    //      cardf.select("pos_lat","pos_lon").show(100,false)
+    LOG.info("=>road")
     for (i <- 0 until road_len) {
       a = tmplist(i).getDouble(0) + 0.0003
       b = tmplist(i).getDouble(0) - 0.0003
       c = tmplist(i).getDouble(1) + 0.0003
       d = tmplist(i).getDouble(1) - 0.0003
-      LOG.info(s"=>in road $a,$b,$c,$d")
+      //      LOG.info(s"=>in road $a,$b,$c,$d")
       //      cardf.select("pos_lat","pos_lon").show(100,false)
-      LOG.info("=>road")
+      //      LOG.info("=>road")
       middf = cardf.filter($"pos_lat" < a).filter($"pos_lat" > b).filter($"pos_lon" < c).filter($"pos_lon" > d)
       if (i == 0) {
         final_df = middf
@@ -75,7 +78,7 @@ object getStatus {
       }
     }
     //    final_df.select("pos_lat","pos_lon").show(100,false)
-    LOG.info("----------->road----------------")
+    //    LOG.info("----------->road----------------")
     final_df
   }
 
@@ -134,9 +137,9 @@ object getStatus {
 
   def saveResultDetail(resultdf: DataFrame, number_id: Long, sparkSession: SparkSession): Unit = {
     import sparkSession.implicits._
-    val tdf = resultdf.select("carno", "pos_time").groupBy("carno").agg(Map("pos_time"->"max")).withColumnRenamed("max(pos_time)","pos_time")
-    val resDf = resultdf.withColumn("number_id", functions.lit(number_id)).select("number_id", "pos_time","pos_lat", "pos_lon", "carno").dropDuplicates()
-    resDf.join(tdf,Seq("carno","pos_time")).dropDuplicates().withColumn("id", functions.lit(0)).write.mode("append")
+    val tdf = resultdf.select("carno", "pos_time").groupBy("carno").agg(Map("pos_time" -> "max")).withColumnRenamed("max(pos_time)", "pos_time")
+    val resDf = resultdf.withColumn("number_id", functions.lit(number_id)).select("number_id", "pos_time", "pos_lat", "pos_lon", "carno").dropDuplicates()
+    resDf.join(tdf, Seq("carno", "pos_time")).dropDuplicates().withColumn("id", functions.lit(0)).write.mode("append")
       .format("jdbc")
       .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)
       .option("dbtable", Constant.DETAIL_RESULT_TABLE)
