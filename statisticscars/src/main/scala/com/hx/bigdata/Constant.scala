@@ -32,10 +32,11 @@ object Constant {
     this.RESULT_TABLE = prop.getProperty("RESULT_TABLE")
     this.DETAIL_RESULT_TABLE = prop.getProperty("DETAIL_RESULT_TABLE")
     this.CALCULATE_INTERVAL = prop.getProperty("CALCULATE_INTERVAL").toInt
+    this.THRESHOLD=prop.getProperty("THRESHOLD").toFloat
 
   }
 
-
+  var THRESHOLD=0.00015
   var SOURCEDB = "sjww"
   var RESULTDB = "sjww"
   var STAB_SOURCEDB = "data-stability"

@@ -1,0 +1,20 @@
+Script started on Thu 24 Aug 2017 10:24:40 PM CST
+]0;fangqing@yutu01:~/git-home/tmpwork]7;file://yutu01.dscc/home/fangqing/git-home/tmpwork[?1034h[fangqing@yutu01 tmpwork]$ ls
+[0m[38;5;33mconf[0m               makefile   run.sh                 typescript                         出租车大数据统计后台使用说明.pdf
+hbase_install.txt  README.md  [38;5;33mstatisticscars[0m         update.sh                          大数据环境配置文档.docx
+hive_install.txt   run.log    [38;5;9mstatisticscars.tar.gz[0m  出租车大数据统计后台使用说明.docx  大数据环境配置文档.pdf
+]0;fangqing@yutu01:~/git-home/tmpwork]7;file://yutu01.dscc/home/fangqing/git-home/tmpwork[fangqing@yutu01 tmpwork]$ clear
+[3;J[H[2J]0;fangqing@yutu01:~/git-home/tmpwork]7;file://yutu01.dscc/home/fangqing/git-home/tmpwork[fangqing@yutu01 tmpwork]$ ls
+[0m[38;5;33mconf[0m               makefile   run.sh                 typescript                         出租车大数据统计后台使用说明.pdf
+hbase_install.txt  README.md  [38;5;33mstatisticscars[0m         update.sh                          大数据环境配置文档.docx
+hive_install.txt   run.log    [38;5;9mstatisticscars.tar.gz[0m  出租车大数据统计后台使用说明.docx  大数据环境配置文档.pdf
+]0;fangqing@yutu01:~/git-home/tmpwork]7;file://yutu01.dscc/home/fangqing/git-home/tmpwork[fangqing@yutu01 tmpwork]$ test
+]0;fangqing@yutu01:~/git-home/tmpwork]7;file://yutu01.dscc/home/fangqing/git-home/tmpwork[fangqing@yutu01 tmpwork]$ ls[K[Kls
+[0m[38;5;33mconf[0m               makefile   run.sh                 typescript                         出租车大数据统计后台使用说明.pdf
+hbase_install.txt  README.md  [38;5;33mstatisticscars[0m         update.sh                          大数据环境配置文档.docx
+hive_install.txt   run.log    [38;5;9mstatisticscars.tar.gz[0m  出租车大数据统计后台使用说明.docx  大数据环境配置文档.pdf
+]0;fangqing@yutu01:~/git-home/tmpwork]7;file://yutu01.dscc/home/fangqing/git-home/tmpwork[fangqing@yutu01 tmpwork]$ clear
+[3;J[H[2J]0;fangqing@yutu01:~/git-home/tmpwork]7;file://yutu01.dscc/home/fangqing/git-home/tmpwork[fangqing@yutu01 tmpwork]$ exit
+exit
+
+Script done on Thu 24 Aug 2017 10:24:47 PM CST

@@ -1,0 +1,202 @@
+软件环境
+    OS: Ubuntu 14.04.1 LTS (GNU/Linux 3.13.0-32-generic x86_64)
+    Java: jdk1.7.0_75
+    Hadoop: hadoop-2.6.0
+    Hbase: hbase-1.0.0
+集群机器：
+IP  HostName    Mater   RegionServer
+10.4.20.30  master  yes     no
+10.4.20.31  slave1  no  yes
+10.4.20.32  slave2  no  yes
+准备
+假设你已经安装部署好了 Hadoop 集群和 Java，可以参考 Spark on YARN 集群部署手册 这篇文章。
+下载解压
+可以从官方下载地址下载 HBase 最新版本，推荐 stable 目录下的二进制版本。我下载的是 hbase-1.0.0-bin.tar.gz 。确保你下载的版本与你现存的 Hadoop 版本兼容（兼容列表）以及支持的JDK版本（HBase 1.0.x 已经不支持 JDK 6 了）。
+解压缩
+tar -zxvf hbase-1.0.0-bin.tar.gz
+cd hbase-1.0.0
+配置 HBase
+编辑hbase-env.sh文件，修改 JAVA_HOME 为你的路径。
+# The java implementation to use.  Java 1.7+ required.
+export JAVA_HOME=/home/spark/workspace/jdk1.7.0_75
+编辑conf/hbase-site.xml文件：
+<configuration>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>hdfs://master:9000/hbase</value>
+  </property>
+  <property>
+    <name>hbase.cluster.distributed</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>hbase.zookeeper.quorum</name>
+    <value>master,slave1,slave2</value>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.dataDir</name>
+    <value>/home/spark/workspace/zookeeper/data</value>
+  </property>
+</configuration>
+其中第一个属性指定本机的hbase的存储目录，必须与Hadoop集群的core-site.xml文件配置保持一致；第二个属性指定hbase的运行模式，true代表全分布模式；第三个属性指定 Zookeeper 管理的机器，一般为奇数个；第四个属性是数据存放的路径。这里我使用的默认的 HBase 自带的 Zookeeper。
+配置regionservers，在regionservers文件中添加如下内容：
+slave1
+slave2
+regionservers文件列出了所有运行hbase的机器（即HRegionServer)。此文件的配置和Hadoop中的slaves文件十分相似，每行指定一台机器的主机名。当HBase启动的时候，会将此文件中列出的所有机器启动。关闭时亦如此。我们的配置意为在 slave1, slave2, slave3 上都将启动 RegionServer。
+将配置好的 hbase 文件分发给各个 slave
+scp -r hbase-1.0.0 spark@slave1:~/workspace/
+scp -r hbase-1.0.0 spark@slave2:~/workspace/
+修改 ulimit 限制
+HBase 会在同一时间打开大量的文件句柄和进程，超过 Linux 的默认限制，导致可能会出现如下错误。
+2010-04-06 03:04:37,542 INFO org.apache.hadoop.hdfs.DFSClient: Exception increateBlockOutputStream java.io.EOFException
+2010-04-06 03:04:37,542 INFO org.apache.hadoop.hdfs.DFSClient: Abandoning block blk_-6935524980745310745_1391901
+所以编辑/etc/security/limits.conf文件，添加以下两行，提高能打开的句柄数量和进程数量。注意将spark改成你运行 HBase 的用户名。
+spark  -       nofile  32768
+spark  -       nproc   32000
+还需要在 /etc/pam.d/common-session 加上这一行:
+session required pam_limits.so
+否则在/etc/security/limits.conf上的配置不会生效。
+最后还要注销（logout或者exit）后再登录，这些配置才能生效！使用ulimit -n -u命令查看最大文件和进程数量是否改变了。记得在每台安装 HBase 的机器上运行哦。
+运行 HBase
+在master上运行
+cd ~/workspace/hbase-1.0.0
+bin/start-hbase.sh
+验证 HBase 成功安装
+在 master 运行 jps 应该会有HMaster进程。在各个 slave 上运行jps 应该会有HQuorumPeer,HRegionServer两个进程。
+===================================================================
+HBase的安装通常分为3种模式：
+1. 单机模式 安装
+（1）下载和解压
+单机模式的安装非常简单，几乎不用对安装文件做什么修改就可以使用。单机模式下，HBase并不使用HDFS，因此将安装文件解压后就几乎可以直接运行。输入命令下载HBase：
+$ wget http://mirrors.aliyun.com/apache/hbase/hbase-0.98.11/hbase-0.98.11-hadoop2-bin.tar.gz
+再将其压缩包解压：
+$ tar -zxvf hbase-0.98.11-hadoop2-bin.tar.gz
+由于解压出来的文件名可能很长，建议修改为较短文件名，例如：
+$ mv hbase-0.98.11-hadoop2 hbase
+（2）配置 hbase-site.xml
+在运行之前，我们需要对HBase进行相关配置。建议大家修改 ${HBase-Dir}/conf/hbase-site.xml 文件，因为即使你修改了hbase-default.xml文件，也会被hbase-site.xml中的配置所覆盖。也就是说，最终是以 hbase-site.xml 中的配置为准的。我们做如下修改：
+<configuration>
+    <property>
+        <name>hbase.rootdir</name>
+        <value>file:///tmp/hbase-${user.name}/hbase</value>
+    </property>
+</configuration>
+注意：修改 ${user.name}为你自己的 hadoop 用户名
+2. 伪分布模式 安装
+伪分布模式是一个运行在单台机器上的分布式模式。此模式下，HBase所有的守护进程将运行在同一个节点之上，而且需要依赖HDFS，因此在此之前必须保证HDFS已经成功运行。确认无误后，我们就可以开始配置HBase的参数了。
+（1）配置 hbase-site.xml 文件
+<configuration>
+    <property>
+        <name>hbase.rootdir</name>
+        <value>hdfs://localhost:9000/hbase</value>
+    </property>
+    <property>
+        <name>hbase.cluster.distributed</name>
+        <value>true</value>
+    </property>
+</configuration>
+hbase.rootdir：该参数制定了HReion服务器的位置，即数据存放的位置。主要端口号要和Hadoop相应配置一致。
+hbase.cluster.distributed：HBase的运行模式。false是单机模式，true是分布式模式。若为false, HBase和Zookeeper会运行在同一个JVM里面。默认为false.
+（2）设置环境变量
+另外，我们需要设置一些环境变量。修改HBase下的conf目录中的hbase-env.sh文件（你的jdk路径可能不一样）：
+export JAVA_HOME=/usr/local/jdk1.7.0_67
+export HBASE_MANAGES_ZK=true
+export HBASE_MANAGES_ZK=true
+此配置信息，表示设置由hbase自己管理zookeeper，不需要单独的zookeeper, 本文搭建的 Hbase 用的是自带的 zookeeper，故设置为true.
+最后修改添加PATH, 则输入：
+$ sudo vim /etc/profile
+来修改 /etc/profile 文件：
+# set hbase path
+export PATH=$PATH:/usr/local/hadoop/hbase/bin
+3. 完全分布模式 安装
+由于完全分布模式需要多台机器，在这里我们就不给出演示了。
+####三、安装之后 - 运行和停止HBase
+正如上面我们提到的，HBase安装分为3个模式，因此HBase的运行自然也分为同样的3个模式。
+1. 单机模式 运行
+（1）启动
+单机模式下不需要HDFS，因此不需要事先启动Hadoop，直接启动HBase即可。终端下输入命令：./start-hbase.sh
+图片描述信息
+注意：路径要正确，应为：$HBASE_HOME/bin 目录，否则会找不到 start-hbase.sh 这个文件，就会出现错误
+（2）查看进程
+我们可以通过 jps 来查看当前 HBase 的进程：
+图片描述信息
+（3）停止HBase服务
+输入 ./stop-hbase.sh
+图片描述信息
+2. 伪分布模式 运行
+（1）启动和查看进程
+前面我们提到过，伪分布模式下，必须先确保HDFS已经启动。因此，我们先启动HDFS，输入命令： ./start-all.sh
+图片描述信息
+使用 jps 查看目前Hadoop的进程：
+图片描述信息
+HDFS成功启动之后，我们再启动HBase，这里和单机模式下启动HBase的方法一样，输入命令： ./start-hbase.sh：
+图片描述信息
+此时再使用 jps查看，可以看到多了HBase的相关进程：
+图片描述信息
+（2）进入HBase Shell
+通过HBase Shell用户可以方便地创建、删除以及修改表，还可以向表中添加数据、列出表中的相关相信等。
+图片描述信息
+输入 help 来查看其所支持的命令，可以根据自己的需要选择。
+图片描述信息
+（3）停止HBase
+根据依赖关系，我们需要先关闭HBase, ./stop-hbase.sh：
+图片描述信息
+通过 jps 可以看到，HBase相关的进程没有了：
+图片描述信息
+再关闭HDFS, ./stop-all.sh.
+图片描述信息
+最后，再通过 jps 发现HDFS的进程也没有了：
+图片描述信息
+3. 完全分布模式 运行
+略。
+####四、参考文档
+> 《Hadoop实战 第2版》陆嘉恒，机械工业出版社；
+> Hadoop2.6.0 伪分布环境搭建
+> * Hadoop-2.6.0 伪分布–安装配置hbase
+####五、本次小结
+本次实验学习和了解了HBase在不同模式下的配置和安装，以及HBase后续的启动和停止等。
+=====================================
+将下载下来的hbase-0.98.9-hadoop2-bin.tar上传至Hadoop的NameNode1服务器上(我这里因为机器原因，把hbase与hadoop安装在同一台机器的，有条件的朋友可以选择安装到不同的机器上),解压hbase至/home/hadoop目录下
+tar -xvf hbase-0.98.9-hadoop2-bin.tar
+mv -r hbase-0.98.9-hadoop2 /home/hadoop/hbase/
+四，打开vim hbase-env.sh 配置相关的JDK环境变量,以及使用HBase托管一个Zookeeper
+export JAVA_HOME=/usr/java/jdk1.7.0_60
+export HBASE_MANAGES_ZK=true
+五，配置hbase中conf目录下hbase-site.xml文件，配置如下：
+<configuration>
+<!--这个目录为RegionServer的共享目录，为HDFS服务的地址，表示Hbase存储目录 -->
+<property>
+<name>hbase.rootdir</name>
+<value>hdfs://namenode1:9000/hbase</value>
+</property>
+<!--配置hbase为分布模式，如果改为false,表示hbase为单机模式， -->
+<property>
+<name>hbase.cluster.distributed</name>
+<value>true</value>
+</property>
+<!--Zookeeper集群地址，使用,号隔开 -->
+<property>
+<name>hbase.zookeeper.quorum</name>
+<value>datanode1,datanode2,datanode3</value>
+</property>
+<!--配置Zookeeper快照地址 -->
+<property>
+<name>base.zookeeper.property.dataDir</name>
+<value>/home/hadoop/hbase/zookeeperdata</value>
+</property>
+<!--配置regionserver监听 -->
+<property>
+<name>hbase.regionserver.ipc.address</name>
+<value>0.0.0.0</value>
+</property>
+</configuration>
+六，配置regionservers文件，在完全分布模式下还需要修改安装包conf目录下的regionservers文件，在这里列出希望运行的全部RegionServer,一行写一个主机名，就如配置hadoop时配置slaves一样
+datanode1
+datanode2
+七，把配置好的文件同时复制到datanode1,datanode2上,可以写一个shell脚本来进行复制
+scp -r /home/hadoop/hbase  hadoop@datanode1:/home/hadoop/
+scp -r /home/hadoop/hbase  hadoop@datanode2:/home/hadoop/
+scp -r /home/hadoop/hbase  hadoop@datanode3:/home/hadoop/
+八，启动hbase,进入hbase的bin目录下执行
+./start-hbase.sh
+   然后在namnode下查看jps如下:

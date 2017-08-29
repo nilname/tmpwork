@@ -63,10 +63,10 @@ object getStatus {
     //      cardf.select("pos_lat","pos_lon").show(100,false)
     LOG.info("=>road")
     for (i <- 0 until road_len) {
-      a = tmplist(i).getDouble(0) + 0.0003
-      b = tmplist(i).getDouble(0) - 0.0003
-      c = tmplist(i).getDouble(1) + 0.0003
-      d = tmplist(i).getDouble(1) - 0.0003
+      a = tmplist(i).getDouble(0) + Constant.THRESHOLD
+      b = tmplist(i).getDouble(0) - Constant.THRESHOLD
+      c = tmplist(i).getDouble(1) + Constant.THRESHOLD
+      d = tmplist(i).getDouble(1) - Constant.THRESHOLD
       //      LOG.info(s"=>in road $a,$b,$c,$d")
       //      cardf.select("pos_lat","pos_lon").show(100,false)
       //      LOG.info("=>road")
