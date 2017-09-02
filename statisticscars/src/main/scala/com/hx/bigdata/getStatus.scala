@@ -2,6 +2,9 @@ package com.hx.bigdata
 
 import java.text.SimpleDateFormat
 import java.util.{Calendar, Date}
+
+import org.apache.spark.ml.feature.VectorAssembler
+import org.apache.spark.ml.regression.LinearRegression
 //import org.
 import org.apache.spark.sql.{DataFrame, functions, SparkSession}
 import org.slf4j.LoggerFactory
@@ -11,7 +14,7 @@ import org.slf4j.LoggerFactory
   */
 object getStatus {
 
-  val LOG = LoggerFactory.getLogger(tmpTest.getClass);
+  val LOG = LoggerFactory.getLogger(getStatus.getClass);
 
   def getLastNminute(num: Int): String = {
     var dateFormat: SimpleDateFormat = new SimpleDateFormat(Constant.TIME_FORMATE)
@@ -82,15 +85,69 @@ object getStatus {
     final_df
   }
 
+  def getCarsfromroadML(cardf: DataFrame, roaddf: DataFrame, sparkSession: SparkSession): DataFrame = {
+    import sparkSession.implicits._
+    val tmpdf_max = roaddf.select("pos_lat", "pos_lon").agg(Map("pos_lon" -> "max", "pos_lat" -> "max")).takeAsList(1).get(0)
+    val tmpdf_min = roaddf.select("pos_lat", "pos_lon").agg(Map("pos_lon" -> "min", "pos_lat" -> "min")).takeAsList(1).get(0)
+    val a = tmpdf_min.getDouble(0)
+    val b = tmpdf_max.getDouble(0)
+    val c = tmpdf_max.getDouble(1)
+    val d = tmpdf_min.getDouble(1)
+    val testDF = cardf.filter($"pos_lon" > a).filter($"pos_lon" < b).filter($"pos_lat" < c).filter($"pos_lat" > d)
+    val trainDF = roaddf.select("pos_lat", "pos_lon")
+
+    //===============================
+    val colArray = Array("pos_lat")
+    val assembler = new VectorAssembler().setInputCols(colArray).setOutputCol("features")
+    val vecDF: DataFrame = assembler.transform(trainDF)
+
+    //===============================
+    val colArray_for_predict = Array("pos_lat")
+    val assembler_for_predict = new VectorAssembler().setInputCols(colArray_for_predict).setOutputCol("features")
+    val vecDF_for_predict: DataFrame = assembler_for_predict.transform(testDF)
+
+    //=================================
+    val lr1 = new LinearRegression()
+    val lr2 = lr1.setFeaturesCol("features").setLabelCol("pos_lon").setFitIntercept(true).setStandardization(false)
+    // RegParam：正则化
+    val lr3 = lr2.setMaxIter(10).setRegParam(0.00003).setElasticNetParam(0.0001)
+    val lr = lr3
+
+    // 将训练集合代入模型进行训练
+    val lrModel = lr.fit(vecDF)
+    val predictions: DataFrame = lrModel.transform(vecDF_for_predict)
+    println("输出预测结果")
+    val predict_result: DataFrame = predictions.selectExpr("features", "pos_lat", "pos_lon", "prediction").withColumn("re",$"pos_lon"-$"prediction")
+    LOG.info("正则化结果")
+    predict_result.show(false)
+
+    //    =========================
+    val lr1x = new LinearRegression()
+    val lr2x = lr1x.setFeaturesCol("features").setLabelCol("pos_lon").setFitIntercept(true)
+    val lrx = lr2x
+    // 将训练集合代入模型进行训练
+    val lrModelx = lrx.fit(vecDF)
+    val predictionsx: DataFrame = lrModelx.transform(vecDF_for_predict)
+    println("输出预测结果")
+    val predict_resultx: DataFrame = predictionsx.selectExpr("features", "pos_lat", "pos_lon", "prediction").withColumn("re",$"pos_lon"-$"prediction")
+    LOG.info("没有正则化的结果")
+    predict_resultx.show(false)
+    predict_resultx
+
+
+  }
+
   def getRegionInfo(sparkSession: SparkSession): Array[DataFrame] = {
     import sparkSession.implicits._
-    val final_df: DataFrame = sparkSession.read
+    val final_df0: DataFrame = sparkSession.read
       .format("jdbc")
       .option("url", Constant.DBURL + Constant.SOURCEDB + Constant.UTF8_STR)
       .option("dbtable", Constant.REGION_TABLE)
       .option("user", Constant.DBUSER)
+      .option("inferSchema", true)
       .option("password", Constant.DBPASSWD)
       .load()
+    val final_df=final_df0.withColumn("pos_lat", 'pos_lat.cast("Double")).withColumn("pos_lon",'pos_lon.cast("Double"))
     val region_ids = final_df.select("bh").dropDuplicates()
     val region_num = region_ids.count().toInt
     val result_region = new Array[DataFrame](region_num)
@@ -157,3 +214,4 @@ case class results(id: Long, id_bh: Long, compute_time: String, aggregated_quant
 case class resultsDetail(id: Long, number_id: Long, pos_lat: String, pos_lon: String, pos_time: String, carno: String)
 
 //"id,number_id,pos_lat,pos_lon,pos_time,carno"
+

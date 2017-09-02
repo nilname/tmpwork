@@ -8,7 +8,7 @@ import org.slf4j.LoggerFactory
 //  * Created by fangqing on 8/14/17.
 //  */
 object AppCore {
-  val LOG = LoggerFactory.getLogger(tmpTest.getClass);
+  val LOG = LoggerFactory.getLogger(AppCore.getClass);
   Constant.init()
 
   def main(args: Array[String]): Unit = {
@@ -27,13 +27,14 @@ object AppCore {
       .builder()
       .appName(Constant.APP_NAME)
       .getOrCreate()
-
+import  spark.implicits._
 
     val jdbcDF1 = spark.read
       .format("jdbc")
       .option("url", Constant.DBURL + Constant.STAB_SOURCEDB + Constant.UTF8_STR)
       .option("dbtable", s"(select id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon,pos_angle,use_area,pay_amount,name from ${Constant.TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb1 ")
       .option("user", Constant.DBUSER)
+      .option("inferSchema", true)
       .option("password", Constant.DBPASSWD)
       .load()
 
@@ -42,9 +43,10 @@ object AppCore {
       .option("url", Constant.DBURL + Constant.STAB_SOURCEDB + Constant.UTF8_STR)
       .option("dbtable", s"(select id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon,pos_angle,use_area,pay_amount,name from ${Constant.STAB_TAXIGPS_TABLE} where pos_time between  \'${start}\' and \'${end}\' ) as tmp_tb2 ")
       .option("user", Constant.DBUSER)
+      .option("inferSchema", true)
       .option("password", Constant.DBPASSWD)
       .load()
-    val jdbcDF = jdbcDF1.union(jdbcDF2).cache()
+    val jdbcDF = jdbcDF1.union(jdbcDF2).withColumn("pos_lat", 'pos_lat.cast("Double")).withColumn("pos_lon",'pos_lon.cast("Double")).cache()
 
     println(s"jdbc count is ${jdbcDF.count()}")
     val regions = getStatus.getRegionInfo(spark)
@@ -55,38 +57,35 @@ object AppCore {
       tmpdf = null
       val flag = getStatus.getRegionType(regions(i)).trim()
       val trflag = flag.equals(Constant.REGION_FLAG.trim)
-//      LOG.info(s"==>this is $flag")
-//      LOG.info(s"==>this is ${Constant.REGION_FLAG.trim()}")
-//      LOG.info(s"==>this is ${trflag}")
+      //      LOG.info(s"==>this is $flag")
+      //      LOG.info(s"==>this is ${Constant.REGION_FLAG.trim()}")
+      //      LOG.info(s"==>this is ${trflag}")
 
       if (trflag) {
-//        println("tttttttttttttttttttttttttttt")
-        tmpdf = getStatus.getCarsfromRegion(jdbcDF, regions(i), spark)
+        LOG.info("this is in region")
+        //        println("tttttttttttttttttttttttttttt")
+        //        tmpdf = getStatus.getCarsfromRegion(jdbcDF, regions(i), spark)
       }
       else {
-        tmpdf = getStatus.getCarsfromroad(jdbcDF, regions(i), spark)
+        //        tmpdf = getStatus.getCarsfromroad(jdbcDF, regions(i), spark)
+        tmpdf = getStatus.getCarsfromroadML(jdbcDF, regions(i), spark)
       }
 
-      if (tmpdf != null) {
-
-//        LOG.info(s"the region ID is : $regionID")
-//        LOG.info(s"saving result in :${Constant.RESULT_TABLE} \n")
-        tmpdf.show(20)
-        getStatus.saveResult(tmpdf, regionID, spark)
-//        LOG.info("==============")
-        tmpdf.printSchema()
-//        LOG.info("saving  detail .....")
-        val number_id = spark.read
-          .format("jdbc")
-          .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)
-          .option("dbtable", Constant.RESULT_TABLE)
-          .option("user", Constant.DBUSER)
-          .option("password", Constant.DBPASSWD)
-          .load().count()
-
-
-        getStatus.saveResultDetail(tmpdf, number_id, spark)
-      }
+//      if (tmpdf != null) {
+//
+//        getStatus.saveResult(tmpdf, regionID, spark)
+//        tmpdf.printSchema()
+//        val number_id = spark.read
+//          .format("jdbc")
+//          .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)
+//          .option("dbtable", Constant.RESULT_TABLE)
+//          .option("user", Constant.DBUSER)
+//          .option("password", Constant.DBPASSWD)
+//          .load().count()
+//
+//
+//        getStatus.saveResultDetail(tmpdf, number_id, spark)
+//      }
 
     }
 
