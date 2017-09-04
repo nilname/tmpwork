@@ -25,9 +25,10 @@ object AppCore {
     }
     val spark = SparkSession
       .builder()
+      .config("spark.sql.shuffle.partitions", 20)
       .appName(Constant.APP_NAME)
       .getOrCreate()
-import  spark.implicits._
+    import spark.implicits._
 
     val jdbcDF1 = spark.read
       .format("jdbc")
@@ -46,7 +47,7 @@ import  spark.implicits._
       .option("inferSchema", true)
       .option("password", Constant.DBPASSWD)
       .load()
-    val jdbcDF = jdbcDF1.union(jdbcDF2).withColumn("pos_lat", 'pos_lat.cast("Double")).withColumn("pos_lon",'pos_lon.cast("Double")).cache()
+    val jdbcDF = jdbcDF1.union(jdbcDF2).withColumn("pos_lat", 'pos_lat.cast("Double")).withColumn("pos_lon", 'pos_lon.cast("Double")).cache()
 
     println(s"jdbc count is ${jdbcDF.count()}")
     val regions = getStatus.getRegionInfo(spark)
@@ -64,28 +65,31 @@ import  spark.implicits._
       if (trflag) {
         LOG.info("this is in region")
         //        println("tttttttttttttttttttttttttttt")
-        //        tmpdf = getStatus.getCarsfromRegion(jdbcDF, regions(i), spark)
+        tmpdf = getStatus.getCarsfromRegion(jdbcDF, regions(i), spark).cache()
       }
       else {
-        //        tmpdf = getStatus.getCarsfromroad(jdbcDF, regions(i), spark)
-        tmpdf = getStatus.getCarsfromroadML(jdbcDF, regions(i), spark)
+        tmpdf = getStatus.getCarsfromroad(jdbcDF, regions(i), spark).cache()
+        //        tmpdf = getStatus.getCarsfromroadML(jdbcDF, regions(i), spark)
       }
 
-//      if (tmpdf != null) {
-//
-//        getStatus.saveResult(tmpdf, regionID, spark)
-//        tmpdf.printSchema()
-//        val number_id = spark.read
-//          .format("jdbc")
-//          .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)
-//          .option("dbtable", Constant.RESULT_TABLE)
-//          .option("user", Constant.DBUSER)
-//          .option("password", Constant.DBPASSWD)
-//          .load().count()
-//
-//
-//        getStatus.saveResultDetail(tmpdf, number_id, spark)
-//      }
+      if (tmpdf != null) {
+        //
+        getStatus.saveResult(tmpdf, regionID, spark)
+        LOG.info("----------------->")
+        tmpdf.printSchema()
+        LOG.info(s"tmpdf count is ${tmpdf.count()}")
+        tmpdf.show(false)
+        val number_id = spark.read
+          .format("jdbc")
+          .option("url", Constant.DBURL + Constant.RESULTDB + Constant.UTF8_STR)
+          .option("dbtable", Constant.RESULT_TABLE)
+          .option("user", Constant.DBUSER)
+          .option("password", Constant.DBPASSWD)
+          .load().count()
+        //
+        //
+        getStatus.saveResultDetail(tmpdf, number_id, spark)
+      }
 
     }
 

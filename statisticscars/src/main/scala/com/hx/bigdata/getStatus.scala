@@ -104,7 +104,7 @@ object getStatus {
     //===============================
     val colArray_for_predict = Array("pos_lat")
     val assembler_for_predict = new VectorAssembler().setInputCols(colArray_for_predict).setOutputCol("features")
-    val vecDF_for_predict: DataFrame = assembler_for_predict.transform(testDF)
+    val vecDF_for_predict: DataFrame = assembler_for_predict.transform(trainDF)
 
     //=================================
     val lr1 = new LinearRegression()
@@ -146,7 +146,7 @@ object getStatus {
       .option("user", Constant.DBUSER)
       .option("inferSchema", true)
       .option("password", Constant.DBPASSWD)
-      .load()
+      .load().cache()
     val final_df=final_df0.withColumn("pos_lat", 'pos_lat.cast("Double")).withColumn("pos_lon",'pos_lon.cast("Double"))
     val region_ids = final_df.select("bh").dropDuplicates()
     val region_num = region_ids.count().toInt
@@ -154,7 +154,7 @@ object getStatus {
     var region_index = ""
     for (i <- 0 until region_num) {
       region_index = region_ids.takeAsList(region_num).get(i).getString(0)
-      result_region(i) = final_df.filter($"bh" === region_index)
+      result_region(i) = final_df.filter($"bh" === region_index).cache()
     }
     result_region
   }
