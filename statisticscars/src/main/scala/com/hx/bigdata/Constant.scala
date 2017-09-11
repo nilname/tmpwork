@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory
   * Created by fangqing on 8/18/17.
   */
 object Constant {
+
+  //初始化配置信息
   def init(): Unit = {
     val prop = new Properties()
     val filepath = new File(System.getProperty("user.dir"))
@@ -35,7 +37,7 @@ object Constant {
     this.THRESHOLD=prop.getProperty("THRESHOLD").toFloat
 
   }
-
+//以下以Var声明的为可变配置,这些信息都可以在外部配置文件中修改.配置文件的含义在statistics.properties中有详细说明
   var THRESHOLD=0.00015
   var SOURCEDB = "sjww"
   var RESULTDB = "sjww"
@@ -50,7 +52,7 @@ object Constant {
   var DETAIL_RESULT_TABLE = "taxidetail"
   var APP_NAME = "car statistics"
   var CALCULATE_INTERVAL = 30
-
+//以下以Val声明的信息为常量信息不需要更改.
   val TIME_FORMATE = "yyyy-MM-dd HH:mm:ss"
   val TAXIGPS_TABLE_FEILDS = "id,carno,company,pos_time,pos_lat,pos_lon,getpos_lat,getpos_lon,stoppos_lat,stoppos_lon," +
     "pos_angle,use_area,pay_amount,name,idcard,sex,telephone,address,plate_time,bz"
